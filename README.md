@@ -24,7 +24,9 @@ The Sink contract provides a simple, trustless mechanism to burn staked TAO toke
 - **Stateless**: No state variables (except constants)
 - **No receive() function**: Tokens must be force-sent (prevents accidental deposits)
 - **Event Logging**: Track all unstakes and burns with detailed events
-- **Neuron Registration Helper**: `registerNeuron` forwards `burnedRegister` calls (and funds) to the neuron precompile so the contract can self-register as a miner
+- **Neuron Registration Helpers**:
+  - `Sink.registerNeuron` forwards `burnedRegister` calls (and funds) to the neuron precompile so the contract can self-register as a miner.
+  - `RegisterOnly.sol` exposes a standalone `burnedRegisterNeuron` helper for minimal deployments and debugging.
 
 ## Contract Architecture
 
@@ -63,6 +65,12 @@ contract Sink {
 - Incentivizes anyone to call burnAll()
 - Formula: `gasReimbursement = (gasUsed + BUFFER) * tx.gasprice`
 - Buffer calibrated to ~100,000 gas units (covers unstake + burn operations)
+
+### Neuron Registration Utilities
+
+- `deploy-testnet.sh` accepts a target parameter. Run `./deploy-testnet.sh Sink` (default) to deploy the burn contract or `./deploy-testnet.sh RegisterOnly` to deploy the minimal `RegisterOnly.sol` helper.
+- `tools/register_neuron.py` is the fully featured helper that decodes SS58 hotkeys to bytes32, loads the Sink ABI, and signs transactions using `PRIVATE_KEY`.
+- `tools/register_neuron_minimal.py` is a stripped-down variant for the `RegisterOnly` contract. It expects a raw `--hotkey-bytes32`, always estimates gas (falling back to 200,000 if estimation fails), and prints transaction status plus replayed revert info if the call fails.
 
 ## Installation
 
@@ -364,3 +372,6 @@ A: The transaction will fail. You must use a forced send mechanism (like selfdes
 ## Contact
 
 For issues or questions, please open an issue on GitHub.
+- **Registration flow requirements**:
+  - The hotkey passed to `registerNeuron`/`burnedRegisterNeuron` must be a fresh 32-byte key (convert an SS58 using `tools/register_neuron.py` or generate one with `tools/generate_h160_keypair.py`). The contract assumes ownership of that hotkey; no other coldkey should be associated with it.
+  - The contract’s own address effectively acts as the coldkey, so it must hold enough TAO to cover the registration burn. You can top it up by converting the contract’s `0x` address to SS58 via `tools/h160_to_ss58.py` and sending TAO on-chain. Check the required burn amount via `btcli subnet show --netuid <id> --network <name>` (e.g., `btcli subnet show --netuid 285 --network test` on testnet).

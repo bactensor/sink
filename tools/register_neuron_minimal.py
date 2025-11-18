@@ -14,7 +14,7 @@ def main():
     parser = argparse.ArgumentParser(description="Minimal burnedRegister helper")
     parser.add_argument("contract", help="NeuronRegistrar contract address")
     parser.add_argument("--netuid", required=True, type=int)
-    parser.add_argument("--hotkey-bytes32", required=True, help="Hotkey as 32-byte hex string (0x...)")
+    parser.add_argument("--hotkey-bytes32", required=True, help="Hotkey as 32-byte pulic key hex string (0x...)")
     parser.add_argument("--value-tao", type=float, required=True, help="TAO to burn (e.g. 0.25)")
     parser.add_argument("--rpc-url", required=True)
     parser.add_argument("--private-key", default=None)
