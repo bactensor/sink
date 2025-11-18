@@ -44,13 +44,20 @@ def main():
 
     value_wei = int(args.value_tao * 1_000_000_000)
     account = w3.eth.account.from_key(private_key)
+    fn = contract.functions.burnedRegisterNeuron(args.netuid, pubkey)
 
-    tx = contract.functions.burnedRegisterNeuron(args.netuid, pubkey).build_transaction(
+    try:
+        gas_limit = fn.estimate_gas({"from": account.address, "value": value_wei})
+    except Exception as exc:
+        print(f"Gas estimation failed ({exc}); using fallback 200000")
+        gas_limit = 200000
+
+    tx = fn.build_transaction(
         {
             "from": account.address,
             "nonce": w3.eth.get_transaction_count(account.address),
             "value": value_wei,
-            "gas": 200000,
+            "gas": gas_limit,
             "gasPrice": w3.eth.gas_price,
             "chainId": w3.eth.chain_id,
         }
