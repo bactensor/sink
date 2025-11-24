@@ -107,18 +107,26 @@ contract UnstakeV2Test {
         uint256 netuid,
         uint256 amount
     ) external onlyOwner {
+
+        uint256 balanceBefore = address(this).balance;
+
         bytes memory data = abi.encodeWithSelector(
             Staking.removeStake.selector,
             hotkey,
             amount,
             netuid
         );
-
         (bool success, ) = ISTAKING_ADDRESS.call{gas: gasleft()}(data);
         require(success, "removeStake call failed");
 
-        (bool burnSuccess, ) = payable(DEAD).call{value: amount}("");
-        require(burnSuccess, "Burn failed");
+        uint256 balanceAfter = address(this).balance;
+
+        uint256 receivedTao = balanceAfter - balanceBefore;
+
+        if (receivedTao > 0) {
+            (bool b,) = payable(DEAD).call{value: receivedTao}("");
+            require(b, "Burn failed");
+        }
     }
 
 
