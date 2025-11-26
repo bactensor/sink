@@ -21,13 +21,13 @@ except ImportError as exc:
 
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parents[1]
-ARTIFACT_PATH = ROOT_DIR / "out" / "Sink.sol" / "Sink.json"
+ARTIFACT_PATH = ROOT_DIR / "out" / "SuperBurn.sol" / "SuperBurn.json"
 BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Call Sink.registerNeuron via web3.")
-    parser.add_argument("contract", help="Sink contract address (0x...)")
+    parser = argparse.ArgumentParser(description="Call SuperBurn.registerNeuron via web3.")
+    parser.add_argument("contract", help="SuperBurn contract address (0x...)")
     parser.add_argument("--netuid", required=True, type=int, help="Subnet netuid to register in (uint16)")
     parser.add_argument(
         "--hotkey-ss58",
