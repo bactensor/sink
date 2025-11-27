@@ -85,6 +85,13 @@ Burn target is `0x0000000000000000000000000000000000000000`.
     --broadcast
   ```
   Note the deployed contract address from the script output for your records.
+- Verify the deployed contract on taostats (so the source is visible and easily inspectable):  
+  ```bash
+  forge verify-contract 0xYourContractAddress src/SuperBurn.sol:SuperBurn \
+    --rpc-url "https://evm.taostats.io/api/eth-rpc" \
+    --verifier blockscout \
+    --verifier-url "https://evm.taostats.io/api/"
+  ```
 - Env vars:  
   - `PRIVATE_KEY` – signer for deploy/ops  
   - `BITTENSOR_RPC_URL` – mainnet RPC  
