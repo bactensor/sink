@@ -48,26 +48,26 @@ contract SuperBurn {
     /// @notice Allows the contract to receive TAO.
     receive() external payable {}
 
-    /// @notice Stakes TAO to a validator. Only the owner can call this.
+    /// @notice Stakes sent TAO to a validator.
     /// @param hotkey The validator's hotkey (32 bytes).
-    /// @param netuid The network UID (e.g., 1 for root).
-    /// @param amount The amount of Rao to stake.
+    /// @param netuid The network UID.
     function stake(
         bytes32 hotkey,
-        uint256 netuid,
-        uint256 amount
-    ) external onlyOwner {
+        uint256 netuid
+    ) external payable onlyOwner {
+        require(msg.value > 0, "Amount must be greater than 0");
+
         bytes memory data = abi.encodeWithSelector(
             Staking.addStake.selector,
             hotkey,
-            amount,
+            msg.value,
             netuid
         );
 
-        (bool success, ) = STAKING_PRECOMPILE.call{gas: gasleft()}(data);
+        (bool success, ) = STAKING_PRECOMPILE.call{value: msg.value, gas: gasleft()}(data);
         require(success, "addStake call failed");
 
-        emit StakeAdded(hotkey, amount, netuid);
+        emit StakeAdded(hotkey, msg.value, netuid);
     }
 
     /// @notice Unstakes TAO from validators and immediately burns it.
