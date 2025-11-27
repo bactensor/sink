@@ -48,28 +48,6 @@ contract SuperBurn {
     /// @notice Allows the contract to receive TAO.
     receive() external payable {}
 
-    /// @notice Stakes sent TAO to a validator.
-    /// @param hotkey The validator's hotkey (32 bytes).
-    /// @param netuid The network UID.
-    function stake(
-        bytes32 hotkey,
-        uint256 netuid
-    ) external payable onlyOwner {
-        require(msg.value > 0, "Amount must be greater than 0");
-
-        bytes memory data = abi.encodeWithSelector(
-            Staking.addStake.selector,
-            hotkey,
-            msg.value,
-            netuid
-        );
-
-        (bool success, ) = STAKING_PRECOMPILE.call{value: msg.value, gas: gasleft()}(data);
-        require(success, "addStake call failed");
-
-        emit StakeAdded(hotkey, msg.value, netuid);
-    }
-
     /// @notice Unstakes TAO from validators and immediately burns it.
     /// @dev This function is open to everyone. Anyone can trigger the burn mechanism.
     /// @param hotkeys Array of validator hotkeys to unstake from.
