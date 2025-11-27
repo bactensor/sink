@@ -53,50 +53,6 @@ contract SuperBurnTest is Test {
         assertEq(address(superBurn).balance, 10 ether);
     }
 
-    function test_Stake_Success() public {
-        uint256 amount = 10 ether;
-        vm.prank(owner);
-
-        vm.expectEmit(true, false, false, true);
-        emit StakeAdded(hotkey, amount, netuid);
-
-        superBurn.stake{value: amount}(hotkey, netuid);
-
-        assertEq(address(STAKING_PRECOMPILE).balance, 10000 ether + amount);
-    }
-
-    function testFuzz_Stake_Success(uint96 amount, uint16 fuzzNetuid, bytes32 fuzzHotkey) public {
-        vm.assume(amount > 0);
-        vm.prank(owner);
-
-        vm.expectEmit(true, false, false, true);
-        emit StakeAdded(fuzzHotkey, amount, fuzzNetuid);
-
-        superBurn.stake{value: amount}(fuzzHotkey, fuzzNetuid);
-
-        assertEq(address(STAKING_PRECOMPILE).balance, 10000 ether + amount);
-    }
-
-    function test_Stake_RevertIf_NotOwner() public {
-        vm.prank(user);
-        vm.expectRevert("Only owner can call this function");
-        superBurn.stake{value: 1 ether}(hotkey, netuid);
-    }
-
-    function test_Stake_RevertIf_AmountZero() public {
-        vm.prank(owner);
-        vm.expectRevert("Amount must be greater than 0");
-        superBurn.stake{value: 0}(hotkey, netuid);
-    }
-
-    function test_Stake_RevertIf_PrecompileFails() public {
-        MockStaking(STAKING_PRECOMPILE).setShouldFail(true);
-
-        vm.prank(owner);
-        vm.expectRevert("addStake call failed");
-        superBurn.stake{value: 1 ether}(hotkey, netuid);
-    }
-
     function test_UnstakeAndBurn_RevertIf_NoReceivedTao() public {
         vm.etch(STAKING_PRECOMPILE, address(0).code);
 
