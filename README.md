@@ -40,7 +40,7 @@ Burn target is `0x0000000000000000000000000000000000000000`.
    - Export `PRIVATE_KEY` for tx signing.
 2) **Register SuperBurn as a miner (per subnet)**  
    - Contract addresses: H160 `0x...`, SS58 `5...` (populate once published).  
-   - Generate a loose coldkey (will serve as the contract's hotkey): `btcli wallet new-coldkey` and capture its public key (this is what we need). This coldkey becomes the registered hotkey tied to the SuperBurn coldkey, so incentives flow to the contract balance.  
+   - Generate a loose coldkey (will serve as the contract's hotkey): `btcli wallet new-coldkey` and capture its public key (e.g., from `~/.bittensor/wallets/<name>/coldkeypub.txt`). This coldkey becomes the registered hotkey tied to the SuperBurn coldkey, so incentives flow to the contract balance.  
    - Check the registration fee: `btcli subnet show --netuid <subnet_id>`.  
    - Ensure your caller EVM wallet has enough TAO: the register tool transfers TAO to the contract, pays the registration fee and gas, then sends back any leftover TAO.  
    - Use the registration helper (instructions to follow with the target subnet details).
@@ -56,9 +56,6 @@ Burn target is `0x0000000000000000000000000000000000000000`.
 - Requirements: deployed contract address, a loose coldkey (public key) from `btcli new-coldkey`, and an RPC endpoint.  
 - Example:  
   ```bash
-  # Show the coldkey public key (this will become the subnet hotkey)
-  cat ~/.bittensor/wallets/sink-contract3/coldkeypub.txt
-
   python tools/register_neuron_minimal.py \
     --netuid <subnet_id> \
     --value-tao <enough tao for registration and gas fees> \
