@@ -97,18 +97,17 @@ contract SuperBurnTest is Test {
         superBurn.stake{value: 1 ether}(hotkey, netuid);
     }
 
-    function test_UnstakeAndBurn_Success_Single() public {
+    function test_UnstakeAndBurn_RevertIf_NoReceivedTao() public {
+        vm.etch(STAKING_PRECOMPILE, address(0).code);
+
         bytes32[] memory hotkeys = new bytes32[](1);
         uint256[] memory amounts = new uint256[](1);
         hotkeys[0] = hotkey;
-        amounts[0] = 5 ether;
+        amounts[0] = 1 ether;
 
-        vm.expectEmit(true, false, false, true);
-        emit UnstakedAndBurned(hotkey, 5 ether, 5 ether);
+        vm.expectRevert("No TAO received");
 
         superBurn.unstakeAndBurn(hotkeys, netuid, amounts);
-
-        assertEq(BURN_ADDRESS.balance, 5 ether);
     }
 
     function test_UnstakeAndBurn_Success_Multiple() public {
@@ -155,24 +154,6 @@ contract SuperBurnTest is Test {
 
         vm.expectRevert("removeStake call failed");
         superBurn.unstakeAndBurn(hotkeys, netuid, amounts);
-    }
-
-    function test_UnstakeAndBurn_NoBurnIfNoReceivedTao() public {
-        vm.etch(STAKING_PRECOMPILE, address(0).code);
-
-        bytes32[] memory hotkeys = new bytes32[](1);
-        uint256[] memory amounts = new uint256[](1);
-        hotkeys[0] = hotkey;
-        amounts[0] = 1 ether;
-
-        uint256 burnBalanceBefore = BURN_ADDRESS.balance;
-
-        (bool success, ) = address(superBurn).call(
-            abi.encodeWithSelector(SuperBurn.unstakeAndBurn.selector, hotkeys, netuid, amounts)
-        );
-        require(success);
-
-        assertEq(BURN_ADDRESS.balance, burnBalanceBefore);
     }
 
     function test_BurnedRegisterNeuron_Success() public {
