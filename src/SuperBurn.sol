@@ -25,13 +25,15 @@ contract SuperBurn {
     event RegisterAttempt(
         uint16 indexed netuid,
         bytes32 hotkey,
-        uint256 amountBurned,
         address indexed caller,
         bool success
     );
 
-    error InsufficientValue();
-    error RefundFailed();
+    error NeuronRegistrationFailed();
+    error RemoveStakeError();
+    error BurnError();
+    error RefundError();
+    error ReceivedTaoIsZeroError();
 
     constructor() {
         owner = msg.sender;
@@ -41,9 +43,6 @@ contract SuperBurn {
         require(msg.sender == owner, "Only owner can call this function");
         _;
     }
-
-    /// @notice Allows the contract to receive TAO.
-    receive() external payable {}
 
     /// @notice Unstakes TAO from validators and immediately burns it.
     /// @dev This function is open to everyone. Anyone can trigger the burn mechanism.
@@ -71,11 +70,15 @@ contract SuperBurn {
             );
 
             (bool success, ) = STAKING_PRECOMPILE.call(data);
-            require(success, "removeStake call failed");
+            if (!success) {
+                revert RemoveStakeError();
+            }
         }
 
         uint256 totalReceivedTao = address(this).balance - balanceBeforeAll;
-        require(totalReceivedTao > 0, "No TAO received");
+        if (totalReceivedTao < 0) {
+            revert ReceivedTaoIsZeroError();
+        }
 
         uint256 gasUsed = gasStart - gasleft();
         uint256 refundAmount = gasUsed * tx.gasprice;
@@ -86,55 +89,44 @@ contract SuperBurn {
 
         if (refundAmount > 0) {
             (bool refundSuccess, ) = payable(msg.sender).call{value: refundAmount}("");
-            require(refundSuccess, "Gas refund failed");
+            if (!refundSuccess) {
+                revert RefundError();
+            }
         }
 
         uint256 burnAmount = totalReceivedTao - refundAmount;
 
         if (burnAmount > 0) {
             (bool burnSuccess, ) = payable(BURN_ADDRESS).call{value: burnAmount}("");
-            require(burnSuccess, "Burn failed");
+            if (!burnSuccess) {
+                revert BurnError();
+            }
         }
     }
 
     /// @notice Registers a neuron using burned TAO.
     /// @param netuid Network UID.
     /// @param hotkey Hotkey to register.
-    /// @param amountToBurn Amount of TAO that will be burned for registration.
-    function burnedRegisterNeuron(
+    function registerNeuron(
         uint16 netuid,
-        bytes32 hotkey,
-        uint256 amountToBurn
+        bytes32 hotkey
     ) external payable returns (bool) {
-        if (amountToBurn == 0) revert InsufficientValue();
-        uint256 startingBalance = address(this).balance;
-
-        if (startingBalance < amountToBurn) revert InsufficientValue();
-
         bytes memory data = abi.encodeWithSelector(
             bytes4(keccak256("burnedRegister(uint16,bytes32)")),
             netuid,
             hotkey
         );
 
-        (bool success,) = NEURON_PRECOMPILE.call{value: amountToBurn, gas: gasleft()}(data);
+        (bool success, ) = NEURON_PRECOMPILE.call{value: msg.value, gas: gasleft()}(
+            data
+        );
 
         if (!success) {
-            _refund(startingBalance);
-            emit RegisterAttempt(netuid, hotkey, amountToBurn, msg.sender, false);
-            return false;
+            emit RegisterAttempt(netuid, hotkey, msg.sender, false);
+            revert NeuronRegistrationFailed();
         }
 
-        // Refund leftover balance
-        uint256 leftover = address(this).balance;
-        if (leftover > 0) _refund(leftover);
-
-        emit RegisterAttempt(netuid, hotkey, amountToBurn, msg.sender, true);
+        emit RegisterAttempt(netuid, hotkey, msg.sender, true);
         return true;
-    }
-
-    function _refund(uint256 amount) internal {
-        (bool sent,) = payable(msg.sender).call{value: amount}("");
-        if (!sent) revert RefundFailed();
     }
 }
