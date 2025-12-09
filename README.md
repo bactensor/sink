@@ -49,27 +49,38 @@ Burn target is `0x0000000000000000000000000000000000000000`.
 4) **Monitor alpha**  
    - Track the contract coldkey `XXX` on taostats via `https://taostats.io/account/<coldkey>` to see accrued alpha.
 5) **Burn**  
-   - Run `python tools/unstake_and_burn.py <contract> --netuid <subnet_id> --rpc-url https://lite.chain.opentensor.ai --private-key $PRIVATE_KEY`  
+   - Run `python tools/unstake_and_burn.py <contract> --netuid <subnet_id> --network <test|finney>` (with `PRIVATE_KEY` set in env).  
    - The script fetches stake for the contract coldkey, calls `unstakeAndBurn`, and the contract reimburses gas while burning all TAO.
 
 ### Registering the SuperBurn miner (example workflow)
-- Requirements: deployed contract address, a loose coldkey (public key) from `btcli new-coldkey`, and an RPC endpoint.  
-- Example:  
-  ```bash
-  python tools/register_neuron.py \
-    --netuid <subnet_id> \
-    --network finney \
-    --hotkey-pub 0xNewColdkeyPublicKey \
-    0x2f47AfDE4e8CC372B8Edd794B3492b3479c260eE
-  ```
-  `--hotkey-pub` is the 32-byte public key of the coldkey that will serve as the registered hotkey on the subnet; the final positional argument is the contract address.
+- Requirements: deployed contract address, a loose coldkey (public key) from `btcli new-coldkey`.
+```bash
+python tools/register_neuron.py \
+  --netuid <subnet_id> \
+  --network finney \
+  --hotkey-pub 0xNewColdkeyPublicKey \
+  0x2f47AfDE4e8CC372B8Edd794B3492b3479c260eE
+```
+`--hotkey-pub` is the 32-byte public key of the coldkey that will serve as the registered hotkey on the subnet; the final positional argument is the contract address.
+`PRIVATE_KEY` must be set in the environment. Replace the contract address and network as needed.
+
+
+### Triggering a burn (example)
+To unstake and burn all contract-held alpha:
+```bash
+python tools/unstake_and_burn.py \
+  --netuid <subnet_id> \
+  --network finney \
+  0x2f47AfDE4e8CC372B8Edd794B3492b3479c260eE
+```
+`PRIVATE_KEY` must be set in the environment. Replace the contract address and network as needed. The script fetches stake, builds the `unstakeAndBurn` call, and the contract reimburses gas.
 
 ## Tooling
-- `tools/register_neuron_minimal.py` / `tools/register_neuron.py` – Register the SuperBurn miner.  
+- `tools/register_neuron.py` – Register the SuperBurn miner.  
 - `tools/unstake_and_burn.py` – Fetch contract-owned stake and trigger the burn.  
 - `tools/get_all_validators_and_stake.py` – Inspect validator stake positions.  
 - `tools/generate_h160_keypair.py` – Key/address utility (backed by `tools/utils/address_converter.py`).  
-- `tools/set_weights.py` – Set validator weights (for validator operators).  
+- `tools/set_weights.py` – Manually set validator weights (utility/testing).  
 - `tools/stake.py` – Manually stake TAO to a hotkey via the contract (utility/testing).  
 
 ## Deployment Notes
