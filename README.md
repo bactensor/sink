@@ -28,8 +28,6 @@ Effect on a fraudulent subnet: alpha price is nosediving, TAO is drained from it
 ## Contract Surface (SuperBurn.sol)
 - **Registration (core):** `burnedRegisterNeuron(netuid, hotkey)` forwards to the neuron precompile so the contract can self-register as a miner. This consumes the subnet registration fee and gas from the contract balance (not reimbursable).  
 - **Burning (core):** `unstakeAndBurn(hotkeys[], netuid, amounts[])` unstakes specified positions, converts alpha to TAO, reimburses the caller’s gas, then burns all TAO.  
-- **Staking (utility/testing):** `stake(hotkey, netuid, amount)` (owner-gated) can stake TAO to a hotkey; primarily for testing flows.  
-- **Receives TAO:** payable `receive()` to accept inflows (needed to fund registration fees and staking); no withdraw path.
 
 Burn target is `0x0000000000000000000000000000000000000000`.
 
@@ -41,18 +39,16 @@ Burn target is `0x0000000000000000000000000000000000000000`.
 2) **Register SuperBurn as a miner (per subnet)**  
    - Contract addresses: H160 `0x2f47AfDE4e8CC372B8Edd794B3492b3479c260eE`, SS58 `5D7vUnt4TJ6M8aQbriZCMMkZ8sfYsSJJvRrVnhdWzkArVHDh`.  
    - Generate a loose coldkey (will serve as the contract's hotkey): `btcli wallet new-coldkey` and capture its public key (e.g., from `~/.bittensor/wallets/<name>/coldkeypub.txt`). This coldkey becomes the registered hotkey tied to the SuperBurn coldkey, so incentives flow to the contract balance.  
-   - Check the registration fee: `btcli subnet show --netuid <subnet_id>`.  
    - Ensure your caller EVM wallet has enough TAO: the register tool transfers TAO to the contract, pays the registration fee and gas, then sends back any leftover TAO.  
-   - Use the registration helper (instructions to follow with the target subnet details).
+   - Use the registration helper (see [Registering the SuperBurn miner](#registering-the-superburn-miner) below).
 3) **Validator weight-setting**  
    - Validators set weights directing emissions to the SuperBurn hotkey. (Use `tools/set_weights.py` if desired; outside contract control.)
 4) **Monitor alpha**  
-   - Track the contract coldkey `XXX` on taostats via `https://taostats.io/account/<coldkey>` to see accrued alpha.
+   - Track the contract coldkey `5D7vUnt4TJ6M8aQbriZCMMkZ8sfYsSJJvRrVnhdWzkArVHDh` on taostats via `https://taostats.io/account/5D7vUnt4TJ6M8aQbriZCMMkZ8sfYsSJJvRrVnhdWzkArVHDh` to see accrued alpha.
 5) **Burn**  
-   - Run `python tools/unstake_and_burn.py <contract> --netuid <subnet_id> --network <test|finney>` (with `PRIVATE_KEY` set in env).  
-   - The script fetches stake for the contract coldkey, calls `unstakeAndBurn`, and the contract reimburses gas while burning all TAO.
+   - Trigger the contract to unstake and burn accumulated alpha using the burn helper (see [Triggering a burn](#triggering-a-burn-helper) below). The contract reimburses most of the gas while burning the TAO.
 
-### Registering the SuperBurn miner (example workflow)
+### Registering the SuperBurn miner (helper)
 - Requirements: deployed contract address, a loose coldkey (public key) from `btcli new-coldkey`.
 ```bash
 python tools/register_neuron.py \
@@ -65,7 +61,7 @@ python tools/register_neuron.py \
 `PRIVATE_KEY` must be set in the environment. Replace the contract address and network as needed.
 
 
-### Triggering a burn (example)
+### Triggering a burn (helper)
 To unstake and burn all contract-held alpha:
 ```bash
 python tools/unstake_and_burn.py \
