@@ -42,7 +42,7 @@ Burn target is `0x0000000000000000000000000000000000000000`.
    - Ensure your caller EVM wallet has enough TAO: the register tool transfers TAO to the contract, pays the registration fee and gas, then sends back any leftover TAO.  
    - Use the registration helper (see [Registering the SuperBurn miner](#registering-the-superburn-miner-helper) below).
 3) **Validator weight-setting**  
-   - Validators set weights directing emissions to the SuperBurn hotkey. (Use `tools/set_weights.py` if desired; outside contract control.)
+   - Validators set weights directing emissions to the SuperBurn hotkey (outside contract control).
 4) **Monitor alpha**  
    - Track the contract coldkey [`5D7vUnt4TJ6M8aQbriZCMMkZ8sfYsSJJvRrVnhdWzkArVHDh`](https://taostats.io/account/5D7vUnt4TJ6M8aQbriZCMMkZ8sfYsSJJvRrVnhdWzkArVHDh) on taostats to see accrued alpha.
 5) **Burn**  
