@@ -49,9 +49,7 @@ Burn target is `0x0000000000000000000000000000000000000000`.
    - Trigger the contract to unstake and burn accumulated alpha using the burn helper (see [Triggering a burn](#triggering-a-burn-helper) below). The contract reimburses most of the gas while burning the TAO.
 
 ### Registering the SuperBurn miner (helper)
-Requirements: deployed contract address, a loose coldkey (public key) from `btcli new-coldkey`.
-
-Run the helper to register:
+Requires: a loose coldkey (public key) from `btcli new-coldkey`, `PRIVATE_KEY` set in your environment and the deployed contract address.
 ```bash
 python tools/register_neuron.py \
   --netuid <subnet_id> \
@@ -59,18 +57,18 @@ python tools/register_neuron.py \
   --hotkey-pub 0xNewColdkeyPublicKey \
   0x2f47AfDE4e8CC372B8Edd794B3492b3479c260eE
 ```
-`--hotkey-pub` is the 32-byte public key of the coldkey that will serve as the registered hotkey on the subnet; the final positional argument is the contract address. `PRIVATE_KEY` must be set in the environment. Adjust `--network`/address for your target chain.
+`--hotkey-pub` is the 32-byte public key of the coldkey that will serve as the registered hotkey on the subnet; the final positional argument is the contract address.
 
 
 ### Triggering a burn (helper)
-Use the burn helper to unstake and burn all contract-held alpha:
+Requires: `PRIVATE_KEY` set in your environment and the deployed contract address.
 ```bash
 python tools/unstake_and_burn.py \
   --netuid <subnet_id> \
   --network finney \
   0x2f47AfDE4e8CC372B8Edd794B3492b3479c260eE
 ```
-`PRIVATE_KEY` must be set in the environment. Replace the contract address and network as needed. The script fetches stake for the contract coldkey, builds the `unstakeAndBurn` call, and the contract reimburses most of the gas while burning the TAO.
+The script fetches stake for the contract coldkey, builds the `unstakeAndBurn` call, and the contract reimburses most of the gas while burning the TAO.
 
 ## Tooling
 - `tools/register_neuron.py` – Register the SuperBurn miner.  
